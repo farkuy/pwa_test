@@ -9,6 +9,9 @@ export default defineConfig({
     srcDir: 'src',
     filename: 'sw.ts',
     registerType: 'prompt',
+    workbox: {
+      globPatterns: ['**/*.{ts,tsx,js,css,html,ico,png,svg}']
+    },
     injectRegister: false,
 
     pwaAssets: {
