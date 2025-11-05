@@ -1,6 +1,6 @@
 if ("serviceWorker" in navigator) {
     navigator.serviceWorker
-        .register("/sw.ts", {scope: "/"})
+        .register("/sw.ts", {scope: "/", type: 'module'})
         .then((reg) => {
             console.log("Registration succeeded. Scope is " + reg.scope);
         })
