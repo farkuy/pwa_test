@@ -10,12 +10,12 @@ class SwBuilder extends IndexBd{
     };
 
     async putInCache (request, response) {
-        const cache = await caches.open( this._swKey);
+        const cache = await caches.open(this._swKey);
         await cache.put(request, response);
     };
 
     async networkError (title?: string, status?: number, headers?: HeadersInit): Promise<Response> {
-        return new Response(title ?? "Network error happened", {
+        return new Response(title ?? "Network error happened 666", {
             status: status ?? 408,
             headers: headers ?? { "Content-Type": "text/plain" },
         })
@@ -45,13 +45,12 @@ class SwBuilder extends IndexBd{
             const responseFromNetwork = await fetch(request);
             if (responseFromNetwork) {
                 const data = await responseFromNetwork.clone().json();
-                await this.addData(data)
+                await this.add(data)
 
                 return responseFromNetwork;
             }
         } catch (error) {
-            console.error(error);
-            const data = this.getBdRow()
+            const data = this.get("brew")
 
             if (data) {
                 return new Response(JSON.stringify(data),{
@@ -94,4 +93,3 @@ class SwBuilder extends IndexBd{
 }
 
 export const swBuilder = new SwBuilder()
-swBuilder.openBd()

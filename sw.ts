@@ -4,7 +4,8 @@ self.addEventListener("activate", (event) => {
     event.waitUntil(swBuilder.deleteOldCaches());
 });
 
-self.addEventListener("install", (event) => {
+self.addEventListener("install", async (event) => {
+    await swBuilder.openBd()
     event.waitUntil(
         swBuilder.addResourcesToCache([
             "./index.html",
