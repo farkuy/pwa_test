@@ -18,9 +18,6 @@ self.addEventListener("install", async (event) => {
 
 self.addEventListener("fetch", (event) => {
     event.respondWith(
-        swBuilder.networkWrapper({
-            request: event.request,
-            event,
-        }),
+        swBuilder.networkWrapper(event.request, event),
     );
 });

@@ -21,7 +21,7 @@ class SwBuilder extends IndexBd{
         })
     }
 
-    async staticCacheOrNetwork ({request, event}): Promise<Response> {
+    async staticCacheOrNetwork (request: Request, event): Promise<Response> {
         const responseFromCache = await caches.match(request);
         if (responseFromCache) {
             fetch(request)
@@ -40,17 +40,18 @@ class SwBuilder extends IndexBd{
         }
     }
 
-    async dynamicNetworkOrBd({request, event}): Promise<Response> {
+    async dynamicNetworkOrBd(request: Request, event): Promise<Response> {
         try {
             const responseFromNetwork = await fetch(request);
+            console.log(request)
             if (responseFromNetwork) {
                 const data = await responseFromNetwork.clone().json();
-                await this.add(data)
+                await this.add("breweries", data)
 
                 return responseFromNetwork;
             }
         } catch (error) {
-            const data = this.get("brew")
+            const data = this.get("breweries", 'b54b16e1-ac3b-4bff-a11f-f7ae9ddc27e0')
 
             if (data) {
                 return new Response(JSON.stringify(data),{
@@ -67,14 +68,14 @@ class SwBuilder extends IndexBd{
     }
 
 
-    async networkWrapper({request, event}): Promise<Response> {
+    async networkWrapper(request, event): Promise<Response> {
         const path = new URL(request.url);
         let response: Response
 
         if (path.hostname.includes(this._apiKey)) {
-            response = await this.dynamicNetworkOrBd({request, event})
+            response = await this.dynamicNetworkOrBd(request, event)
         } else {
-            response = await this.staticCacheOrNetwork({request, event})
+            response = await this.staticCacheOrNetwork(request, event)
         }
 
         return response

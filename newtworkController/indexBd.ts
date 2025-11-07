@@ -32,16 +32,20 @@ export class IndexBd {
     //TODO: подумать как добавлять данные, как передавать название таблицы, ключ и данные
     // Только описанное выше не в этом слое сделать
     async add(storeName: string, data: any): Promise<void> {
-        const transaction = await this.bd.transaction(storeName, 'readwrite');
-        const store = await transaction.objectStore(storeName);
-        const isHaveRow = await store.get(data?.id)
+        const transaction = this.bd.transaction(storeName, 'readwrite');
+        const store = transaction.objectStore(storeName);
+        const isHaveRow = store.get(data?.id)
 
-        isHaveRow ? await store.put(data) : await store.add(data)
+        if (isHaveRow) {
+            store.put(data)
+        } else {
+            store.add(data)
+        }
     }
 
     async get(storeName: string, key: string, mode: IDBTransactionMode = 'readonly'): Promise<IDBRequest<any>> {
-        const transaction = await this.bd.transaction(storeName, mode);
-        const store = await transaction.objectStore(storeName);
+        const transaction = this.bd.transaction(storeName, mode);
+        const store = transaction.objectStore(storeName);
 
         return new Promise((resolve, reject) => {
             const request = store.get(key)
@@ -55,8 +59,8 @@ export class IndexBd {
     }
 
     async getAll(storeName: string, mode: IDBTransactionMode = 'readonly') {
-        const transaction = await this.bd.transaction(storeName, mode);
-        const store = await transaction.objectStore(storeName);
+        const transaction = this.bd.transaction(storeName, mode);
+        const store = transaction.objectStore(storeName);
 
         return new Promise((resolve, reject) => {
             const request = store.getAll();
