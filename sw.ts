@@ -5,7 +5,7 @@ self.addEventListener("activate", (event) => {
 });
 
 self.addEventListener("install", async (event) => {
-    await swBuilder.openBd()
+    await swBuilder.indexBd.openBd()
     event.waitUntil(
         swBuilder.addResourcesToCache([
             "./index.html",

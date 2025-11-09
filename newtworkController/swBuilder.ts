@@ -1,8 +1,13 @@
-import {IndexBd} from "./indexBd";
+import {indexBd, IndexBd} from "./indexBd";
 
-class SwBuilder extends IndexBd{
+class SwBuilder {
     _swKey = 'builder-v1'
     _apiKey = 'api.openbrewerydb.org'
+    indexBd: IndexBd
+
+    constructor() {
+        this.indexBd = indexBd
+    }
 
     async addResourcesToCache (resources: RequestInfo[]) {
         const cache = await caches.open(this._swKey);
@@ -19,6 +24,13 @@ class SwBuilder extends IndexBd{
             status: status ?? 408,
             headers: headers ?? { "Content-Type": "text/plain" },
         })
+    }
+
+    async saveRequest(request: Request) {
+        const clone = await request.clone();
+        const data = await clone.text();
+
+        await this.indexBd.add('requestQueue', data)
     }
 
     async staticCacheOrNetwork (request: Request, event): Promise<Response> {
@@ -41,17 +53,35 @@ class SwBuilder extends IndexBd{
     }
 
     async dynamicNetworkOrBd(request: Request, event): Promise<Response> {
+        function formatMarkdownLink(url): string[] {
+            const parts = url.split('/');
+            const id = parts[parts.length - 1];
+            const path = parts[parts.length - 2];
+            return [path, id];
+        }
+
         try {
             const responseFromNetwork = await fetch(request);
-            console.log(request)
+            const pth = formatMarkdownLink(request.url)
+            console.log(request, pth[0])
             if (responseFromNetwork) {
                 const data = await responseFromNetwork.clone().json();
-                await this.add("breweries", data)
+                await this.indexBd.add(pth[0], data)
 
                 return responseFromNetwork;
             }
         } catch (error) {
-            const data = this.get("breweries", 'b54b16e1-ac3b-4bff-a11f-f7ae9ddc27e0')
+            console.log(error, request, 2222)
+
+            let data
+            switch (request.method.toLowerCase()) {
+                case 'get':
+                    data = await this.indexBd.getAll('breweries')
+                    break;
+                default:
+                    await this.saveRequest(request)
+                    break;
+            }
 
             if (data) {
                 return new Response(JSON.stringify(data),{
@@ -73,8 +103,10 @@ class SwBuilder extends IndexBd{
         let response: Response
 
         if (path.hostname.includes(this._apiKey)) {
+            console.log('dync')
             response = await this.dynamicNetworkOrBd(request, event)
         } else {
+            console.log('stat')
             response = await this.staticCacheOrNetwork(request, event)
         }
 
